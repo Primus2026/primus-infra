@@ -7,6 +7,7 @@ This directory handles the orchestration of the entire Primus System.
 - **frontend**: React application.
 - **db**: PostgreSQL database (Port 5432).
 - **mqtt**: Mosquitto Broker (Port 1883).
+- **mqtt-listener**: Service ingesting sensor data.
 - **mock-sensor**: Python script simulating IoT devices.
 
 ## Usage

@@ -36,6 +36,18 @@ services:
       - mosquitto
     restart: always
 
+  mqtt-listener:
+    build:
+      context: ../primus-mqtt-listener
+    environment:
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - mosquitto
+      - redis
+    restart: always
+
   postgres:
     image: postgres:15-alpine
     ports:
