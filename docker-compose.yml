@@ -14,6 +14,8 @@ services:
       - redis
       - mosquitto
     restart: always
+    volumes:
+      - alembic_data:/app/alembic
 
   frontend:
     build:
@@ -85,3 +87,4 @@ volumes:
   redis_data:
   mosquitto_data:
   mosquitto_log:
+  alembic_data:
