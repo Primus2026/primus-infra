@@ -15,7 +15,7 @@ services:
       - mosquitto
     restart: always
     volumes:
-      - alembic_data:/app/alembic
+      - ../primus-backend/alembic:/app/alembic
 
   frontend:
     build:
@@ -87,4 +87,5 @@ volumes:
   redis_data:
   mosquitto_data:
   mosquitto_log:
-  alembic_data:
+
+
