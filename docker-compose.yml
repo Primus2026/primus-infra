@@ -9,6 +9,7 @@ services:
       - REDIS_URL=${REDIS_URL}
       - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
       - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
     depends_on:
       - postgres
       - redis
