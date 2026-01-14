@@ -15,6 +15,7 @@ services:
       - postgres
       - redis
       - mosquitto
+      - worker
     restart: always
     volumes:
       - ../primus-backend/alembic:/app/alembic
