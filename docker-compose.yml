@@ -11,6 +11,10 @@ services:
       - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
       - ENVIRONMENT=${ENVIRONMENT:-local}
       - SECRET_KEY=${SECRET_KEY}
+      - REPORT_DIR=${REPORT_DIR:-/data/reports}
+      - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
       - postgres
       - redis
@@ -31,6 +35,8 @@ services:
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REPORT_DIR=${REPORT_DIR:-/data/reports}
+      - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
     depends_on:
       - postgres
       - redis
