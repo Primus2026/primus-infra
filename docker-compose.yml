@@ -19,7 +19,7 @@ services:
     restart: always
     volumes:
       - ../primus-backend/alembic:/app/alembic
-      - media_data:/app/media
+      - media_data:/data/media
 
   worker:
     build:
@@ -35,6 +35,8 @@ services:
       - postgres
       - redis
     restart: always
+    volumes:
+      - media_data:/data/media
 
   frontend:
     build:
@@ -72,7 +74,7 @@ services:
   postgres:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
