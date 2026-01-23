@@ -23,7 +23,7 @@ services:
     restart: always
     volumes:
       - ../primus-backend/alembic:/app/alembic
-      - media_data:/data/media
+      - backend_data:/data
 
   worker:
     build:
@@ -42,8 +42,7 @@ services:
       - redis
     restart: always
     volumes:
-      - media_data:/data/media
-
+      - backend_data:/data
   frontend:
     build:
       context: ../primus-web-frontend
@@ -115,4 +114,4 @@ volumes:
   redis_data:
   mosquitto_data:
   mosquitto_log:
-  media_data:
+  backend_data:
