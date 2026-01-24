@@ -2,6 +2,7 @@ services:
   backend:
     build:
       context: ../primus-backend
+      target: backend
     ports:
       - "8000:8000"
     environment:
@@ -28,21 +29,36 @@ services:
   worker:
     build:
       context: ../primus-backend
+      target: worker
 
-    command: celery -A app.core.celery_worker.celery_app worker -l info -c 4
     environment:
+
+      # Required for YOLO 
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+      - MPLCONFIGDIR=/tmp/matplotlib
+      - OMP_NUM_THREADS=1
+
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - REPORT_DIR=${REPORT_DIR:-/data/reports}
-      - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
     depends_on:
       - postgres
       - redis
     restart: always
     volumes:
       - backend_data:/data
+      # Enable GPU Support
+      # For NVIDIA: Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+      # For AMD: Maps the render devices directly
+      # Uncomment the 'deploy' section below to enable NVIDIA GPU access
+      # deploy:
+      #   resources:
+      #     reservations:
+      #       devices:
+      #         - driver: nvidia
+      #           count: 1
+      #           capabilities: [ gpu ]
   frontend:
     build:
       context: ../primus-web-frontend
