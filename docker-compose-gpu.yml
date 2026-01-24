@@ -1,0 +1,133 @@
+services:
+  backend:
+    build:
+      context: ../primus-backend
+      target: backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
+      - SECRET_KEY=${SECRET_KEY}
+      - REPORT_DIR=${REPORT_DIR:-/data/reports}
+      - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+    depends_on:
+      - postgres
+      - redis
+      - mosquitto
+      - worker
+    restart: always
+    volumes:
+      - ../primus-backend/alembic:/app/alembic
+      - backend_data:/data
+
+  worker:
+    build:
+      context: ../primus-backend
+      target: worker
+    working_dir: /data
+
+    environment:
+
+      # Required for YOLO 
+      - YOLO_CONFIG_DIR=/tmp/Ultralytics
+      - MPLCONFIGDIR=/tmp/matplotlib
+
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - PYTHONPATH=/app
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    volumes:
+      - backend_data:/data
+
+    # Enable GPU Support
+    # Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+  frontend:
+    build:
+      context: ../primus-web-frontend
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+    depends_on:
+      - backend
+    restart: always
+
+  mock-sensor:
+    build:
+      context: ../primus-mock-sensor
+    environment:
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+    depends_on:
+      - mosquitto
+    restart: always
+
+  mqtt-listener:
+    build:
+      context: ../primus-mqtt-listener
+    environment:
+      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - REDIS_URL=${REDIS_URL}
+    depends_on:
+      - mosquitto
+      - redis
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    restart: always
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+      # Note: For persistence/auth, a local mosquitto.conf would be mounted here
+      # - ./mosquitto/config:/mosquitto/config
+    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
+  mosquitto_data:
+  mosquitto_log:
+  backend_data:
