@@ -16,6 +16,12 @@ services:
       - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - STORAGE_TYPE=${STORAGE_TYPE:-minio}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - MINIO_SECURE=${MINIO_SECURE:-false}
+
     depends_on:
       - postgres
       - redis
@@ -43,6 +49,12 @@ services:
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - STORAGE_TYPE=${STORAGE_TYPE:-minio}
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_SECRET_KEY=${MINIO_ROOT_PASSWORD:-minioadmin}
+      - MINIO_SECURE=${MINIO_SECURE:-false}
+
     depends_on:
       - postgres
       - redis
@@ -157,6 +169,26 @@ services:
       /usr/bin/mc anonymous set public myminio/product-images;
       exit 0;
       "
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c " /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ROOT_USER:-minioadmin} $${MINIO_ROOT_PASSWORD:-minioadmin}; /usr/bin/mc mb myminio/product-images; /usr/bin/mc mb myminio/reports; /usr/bin/mc mb myminio/datasets; /usr/bin/mc mb myminio/models; /usr/bin/mc anonymous set public myminio/product-images; exit 0; "
 
 volumes:
   postgres_data:
