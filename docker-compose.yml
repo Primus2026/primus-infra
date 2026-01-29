@@ -75,23 +75,34 @@ services:
   mock-sensor:
     build:
       context: ../primus-mock-sensor
+    ports:
+      - "8501:8501"
     environment:
-      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - BACKEND_URL=http://backend:8000/api/v1
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     depends_on:
       - mosquitto
+      - backend
     restart: always
 
   mqtt-listener:
     build:
       context: ../primus-mqtt-listener
     environment:
-      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
-      - REDIS_URL=${REDIS_URL}
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKEND_URL=http://backend:8000/api/v1
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     depends_on:
       - mosquitto
       - redis
+      - backend
     restart: always
 
   postgres:
@@ -124,7 +135,7 @@ services:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
       # Note: For persistence/auth, a local mosquitto.conf would be mounted here
-      # - ./mosquitto/config:/mosquitto/config
+      - ./mosquitto/config:/mosquitto/config
     restart: always
   
   minio:
