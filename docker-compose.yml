@@ -17,15 +17,23 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
-      - postgres
-      - redis
-      - mosquitto
-      - worker
-      - minio
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+      worker:
+        condition: service_started
+      minio:
+        condition: service_started
+      init-permissions:
+        condition: service_completed_successfully
     restart: always
     volumes:
       - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
+      - ./backups:/app/backups
 
   worker:
     build:
@@ -44,12 +52,18 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
     depends_on:
-      - postgres
-      - redis
-      - minio
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      init-permissions:
+        condition: service_completed_successfully
     restart: always
     volumes:
       - backend_data:/data
+      - ./backups:/app/backups
       # Enable GPU Support
       # For NVIDIA: Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
       # For AMD: Maps the render devices directly
@@ -165,9 +179,17 @@ services:
       /usr/bin/mc mb -p myminio/reports;
       /usr/bin/mc mb -p myminio/datasets;
       /usr/bin/mc mb -p myminio/models;
+      /usr/bin/mc mb -p myminio/backups;
       /usr/bin/mc anonymous set public myminio/product-images;
       exit 0;
       "
+
+  init-permissions:
+    image: alpine:latest
+    user: root
+    command: sh -c "mkdir -p /app/backups && chmod 777 /app/backups"
+    volumes:
+      - ./backups:/app/backups
 
 volumes:
   postgres_data:
