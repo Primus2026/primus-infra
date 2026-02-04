@@ -43,6 +43,10 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
       - PYTHONPATH=/app
+
+      # AMD Specific
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+
     depends_on:
       - postgres
       - redis
@@ -50,15 +54,11 @@ services:
     volumes:
       - backend_data:/data
 
-    # Enable GPU Support
-    # Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [ gpu ]
+    # Enable GPU Support (AMD ROCm)
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+
   frontend:
     build:
       context: ../primus-web-frontend
@@ -121,9 +121,24 @@ services:
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      # Note: For persistence/auth, a local mosquitto.conf would be mounted here
-      # - ./mosquitto/config:/mosquitto/config
     restart: always
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./scripts:/scripts
+    entrypoint: /scripts/ollama-entrypoint.sh
+    restart: always
+
+    # Enable GPU Support (AMD ROCm)
+    devices:
+      - "/dev/kfd"
+      - "/dev/dri"
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
 
 volumes:
   postgres_data:
@@ -131,3 +146,5 @@ volumes:
   mosquitto_data:
   mosquitto_log:
   backend_data:
+  minio_data:
+  ollama_data:
