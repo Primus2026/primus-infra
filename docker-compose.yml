@@ -33,7 +33,6 @@ services:
     volumes:
       - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
-      - ./backups:/app/backups
 
   worker:
     build:
@@ -63,7 +62,6 @@ services:
     restart: always
     volumes:
       - backend_data:/data
-      - ./backups:/app/backups
       # Enable GPU Support
       # For NVIDIA: Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
       # For AMD: Maps the render devices directly
