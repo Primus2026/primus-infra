@@ -57,6 +57,16 @@ services:
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      
+      # Scheduler Config (moved from celery-beat)
+      - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
+      - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
+      - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
+      - BACKUP_SCHEDULE_MINUTE=${BACKUP_SCHEDULE_MINUTE}
+      
+    # Combined worker and beat command
+    command: python -m celery -A app.core.celery_worker.celery_app worker -l info -c 4 --beat -s /tmp/celerybeat-schedule
+    
     depends_on:
       postgres:
         condition: service_started
@@ -80,24 +90,7 @@ services:
       #         - driver: nvidia
       #           count: 1
       #           capabilities: [ gpu ]
-  celery-beat:
-    build:
-      context: ../primus-backend
-      target: worker
-    # Dodajemy flagę -s /tmp/celerybeat-schedule
-    command: celery -A app.core.celery_worker beat --loglevel=info -s /tmp/celerybeat-schedule
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
-      - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
-      - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
-      - BACKUP_SCHEDULE_MINUTE=${BACKUP_SCHEDULE_MINUTE}
-    depends_on:
-      - redis
-    restart: always
+
   frontend:
     build:
       context: ../primus-web-frontend
