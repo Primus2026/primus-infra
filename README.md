@@ -1,79 +1,109 @@
-# Primus 2026 Infrastructure
+# Infrastruktura Primus 2026
 
-This directory handles the orchestration of the entire Primus System.
+Ten katalog odpowiada za orkiestrację całego Systemu Primus.
 
-## Services
-- **backend**: FastAPI application.
-- **frontend**: React application.
-- **db**: PostgreSQL database (Port 5432).
-- **mqtt**: Mosquitto Broker (Port 1883).
-- **mqtt-listener**: Service ingesting sensor data.
-- **mock-sensor**: Python script simulating IoT devices.
+## Przegląd Usług
 
-## Usage
+| Usługa | Opis | Port |
+| :--- | :--- | :--- |
+| **backend** | Aplikacja FastAPI (Logika Biznesowa) | `8000` |
+| **frontend** | Aplikacja React (Interfejs Webowy) | `5173` |
+| **db** | Baza danych PostgreSQL | `5432` |
+| **mqtt** | Broker Mosquitto | `1883` |
+| **worker** | Celery Worker (Zadania w tle) | - |
+| **ollama** | Serwer Modelu AI (Qwen3 4B) | `11434` |
+| **mqtt-listener** | Pobiera dane z czujników MQTT | - |
+| **mock-sensor** | Symulator urządzeń IoT | - |
 
-### Prerequisites
-1.  **Docker** and **Docker Compose** installed.
-2.  Configuration file:
+## Jak zacząć
+
+### 1. Wymagania wstępne
+- Zainstalowany **Docker** i **Docker Compose**.
+- **Konfiguracja**: Utwórz plik `.env`.
     ```bash
-    cp .env.example .env  # Or create .env manually
+    cp .env.example .env
     ```
-    > **Note**: A `.env` file or exported environment variables are **required**. See `.env.example` (or the `docker-compose.yml` keys) for reference.
 
-### Running the System
-To start all services (Backend, Frontend, Postgres, Redis, Mosquitto, Mock Sensor):
+### 2. Wybierz swoją konfigurację
+Wybierz przewodnik pasujący do Twojego sprzętu:
+- [🟢 Konfiguracja NVIDIA](#-konfiguracja-nvidia) - Dla systemów z kartami NVIDIA.
+- [🔴 Konfiguracja AMD](#-konfiguracja-amd) - Dla systemów z kartami AMD (Tryb Natywny lub Hybrydowy).
+- [🔵 Konfiguracja Standardowa](#-konfiguracja-standardowa-bez-gpu) - Dla środowisk bez GPU / tylko CPU.
 
-```bash
-cd primus-infra
-docker compose up --build
-```
-Nvidia gpu support:
-```bash
-cd primus-infra
-docker compose -f docker-compose-gpu.yml up --build
-```
+### 3. Dostęp do aplikacji
+- **API Backend**: [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Frontend UI**: [http://localhost:5173](http://localhost:5173)
 
-
-
-- **Backend**: [http://localhost:8000](http://localhost:8000)
-- **Frontend**: [http://localhost:5173](http://localhost:5173)
-
-### Shutdown
+### 4. Wyłączanie
 ```bash
 docker compose down
 ```
 
-### GPU Support Setup
-If you need to run the worker with GPU support (using `docker-compose-gpu.yml`), you must install the NVIDIA Container Toolkit.
+---
 
-#### Linux (Ubuntu/Debian)
+## 🟢 Konfiguracja NVIDIA
 
+### 1. Instalacja
+**Użytkownicy Linux / WSL2:**
+Musisz zainstalować **NVIDIA Container Toolkit**, aby Docker miał dostęp do Twojej karty graficznej.
 
-**1. Configure the repository**
 ```bash
+# 1. Konfiguracja repozytorium
 curl -fsSL https://nvidia.github.io/libnvidia-container/gpgkey | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-container-toolkit-keyring.gpg \
   && curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
     sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
     sudo tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
-```
 
-**2. Install the toolkit**
-```bash
-sudo apt-get update
-sudo apt-get install -y nvidia-container-toolkit
-```
+# 2. Instalacja
+sudo apt-get update && sudo apt-get install -y nvidia-container-toolkit
 
-**3. Configure Docker**
-```bash
+# 3. Konfiguracja Dockera
 sudo nvidia-ctk runtime configure --runtime=docker
 sudo systemctl restart docker
 ```
 
-#### Windows (WSL2)
-1.  **Windows Host**: Install the latest [NVIDIA Drivers](https://www.nvidia.com/Download/index.aspx) on Windows. Do **not** install drivers inside WSL2.
-2.  **WSL2**: Ensure you are running WSL2 (`wsl --install`).
-3.  **Docker Desktop Users**: Enable the WSL2 backend in Docker Desktop settings. GPU support should work out of the box.
-4.  **Native Docker in WSL2**: If you installed Docker Engine directly inside WSL2 (without Docker Desktop):
-    *   Open your WSL2 terminal.
-    *   Run the **Host Configuration** and **Installation** commands listed in the **Linux** section above.
-    *   Configure the runtime as shown above.
+### 2. Uruchamianie
+Użyj dedykowanej konfiguracji NVIDIA:
+```bash
+docker compose -f docker-compose-nvidia.yml up --build
+```
+
+---
+
+## 🔴 Konfiguracja AMD
+
+### Opcja A: Tryb Hybrydowy (Zalecany dla WSL2)
+Opcja dla Windows/WSL2.
+1.  **Zainstaluj**: Pobierz [Ollama dla Windows](https://ollama.com/download/windows).
+2.  **Uruchom**: Otwórz terminal w Windows i wpisz `ollama serve`.
+3.  **Skonfiguruj**: Edytuj plik `primus-infra/.env`:
+    ```bash
+    VOICE_LLM_PROVIDER=ollama
+    OLLAMA_URL=http://host.docker.internal:11434/api/generate
+    ```
+4.  **Uruchomienie**: Użyj standardowej konfiguracji dla CPU (Docker obsługuje logikę, Windows obsługuje AI).
+    ```bash
+    docker compose up --build
+    ```
+
+### Opcja B: Tryb Natywny (Linux)
+Użyj tej opcji tylko, jeśli masz natywne wsparcie ROCm (wymaga obecności `/dev/kfd`).
+
+1.  **Instalacja**:
+    - Zainstaluj odpowiednie sterowniki AMD
+    - Komenda `rocminfo` musi wyświetlić Twoją kartę graficzną.
+
+2.  **Uruchamianie**:
+    ```bash
+    docker compose -f docker-compose-amd.yml up --build
+    ```
+
+---
+
+## 🔵 Konfiguracja Standardowa (Bez GPU)
+Do testowania na urządzeniach bez dedykowanego sprzętu AI, lub z zewnętrznym serwisem do obsługi LLM.
+1.  **Skonfiguruj**: Ustaw zewnętrzne LLM w `.env` (np. klucz OpenAI).
+2.  **Uruchom**:
+    ```bash
+    docker compose up --build
+    ```
