@@ -40,7 +40,6 @@ services:
     volumes:
       - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
-      - ./backups:/app/backups
 
   worker:
     build:
@@ -70,7 +69,6 @@ services:
     restart: always
     volumes:
       - backend_data:/data
-      - ./backups:/app/backups
       # Enable GPU Support
       # For NVIDIA: Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
       # For AMD: Maps the render devices directly
@@ -82,6 +80,24 @@ services:
       #         - driver: nvidia
       #           count: 1
       #           capabilities: [ gpu ]
+  celery-beat:
+    build:
+      context: ../primus-backend
+      target: worker
+    # Dodajemy flagę -s /tmp/celerybeat-schedule
+    command: celery -A app.core.celery_worker beat --loglevel=info -s /tmp/celerybeat-schedule
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
+      - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
+      - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
+      - BACKUP_SCHEDULE_MINUTE=${BACKUP_SCHEDULE_MINUTE}
+    depends_on:
+      - redis
+    restart: always
   frontend:
     build:
       context: ../primus-web-frontend
