@@ -75,7 +75,7 @@ docker compose -f docker-compose-nvidia.yml up --build
 ### Opcja A: Tryb Hybrydowy (Zalecany dla WSL2)
 Opcja dla Windows/WSL2.
 1.  **Zainstaluj**: Pobierz [Ollama dla Windows](https://ollama.com/download/windows).
-2.  **Uruchom**: Otwórz terminal w Windows i wpisz `ollama serve`.
+2.  **Uruchom**: Otwórz terminal w Windows i wpisz`$env:OLLAMA_VULKAN="1"` i `ollama serve`.
 3.  **Skonfiguruj**: Edytuj plik `primus-infra/.env`:
     ```bash
     VOICE_LLM_PROVIDER=ollama
