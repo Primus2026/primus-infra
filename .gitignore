@@ -1,2 +1,5 @@
 .env
 
+
+# SSL Certificates
+nginx/certs/
