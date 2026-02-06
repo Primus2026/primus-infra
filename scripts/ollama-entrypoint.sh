@@ -5,7 +5,7 @@
 pid=$!
 
 echo "Waiting for Ollama to start..."
-while ! curl -s http://localhost:11434/ > /dev/null; do
+while ! (echo > /dev/tcp/localhost/11434) >/dev/null 2>&1; do
     sleep 1
 done
 

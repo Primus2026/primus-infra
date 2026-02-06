@@ -17,9 +17,9 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
 
-      - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER}
-      - OLLAMA_URL=${OLLAMA_URL}
-      - VOICE_LLM_MODEL=${VOICE_LLM_MODEL}
+      - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER:-ollama}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434/api/generate}
+      - VOICE_LLM_MODEL=${VOICE_LLM_MODEL:-qwen3:4b}
       - VOICE_LLM_API_KEY=${VOICE_LLM_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
