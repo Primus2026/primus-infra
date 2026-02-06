@@ -2,12 +2,16 @@
 
 To repozytorium odpowiada za orkiestrację usług, zarządzanie siecią i bezpieczeństwo danych (TLS/Szyfrowanie).
 
-## Szybki Start
+## Struktura Projektu
 
-1. Skonfiguruj środowisko: `cp .env.example .env`
-2. Uruchom system: `docker compose up -d` (Wymaga standardowej konfiguracji CPU)
+- **`dev/`** [DOMYŚLNE]: Zawiera konfigurację deweloperską (buduje obrazy lokalnie z `context: .`).
+- **`docker-compose.yml`**: Konfiguracja produkcyjna (używa gotowych obrazów z Docker Hub).
+- **`docker-compose-nvidia.yml`**: Dodatek produkcyjny dla NVIDIA GPU.
+- **`docker-compose-amd.yml`**: Dodatek produkcyjny dla AMD GPU.
 
+## Wdrażanie Produkcyjne (Gotowe Obrazy)
 
+Wersja produkcyjna pobiera gotowe obrazy z Docker Hub, co oszczędza czas (brak kompilacji na docelowej maszynie).
 
 ## 🟢 Konfiguracja NVIDIA (GPU)
 Zalecana dla systemów z kartami graficznymi NVIDIA.
@@ -26,7 +30,7 @@ sudo systemctl restart docker
 
 **Uruchomienie:**
 ```bash
-docker compose -f docker-compose-nvidia.yml up --build -d
+docker compose -f docker-compose-nvidia.yml up -d
 ```
 
 
@@ -41,9 +45,30 @@ docker compose -f docker-compose-nvidia.yml up --build -d
 
 ### Tryb Natywny (Linux ROCm)
 ```bash
-docker compose -f docker-compose-amd.yml up --build -d
+docker compose -f docker-compose-amd.yml up -d
 ```
 
+## ⚪ Konfiguracja z zewnętrznym Ollama/OpenAI (CPU)
+Zalecana dla systemów bez dedykowanej karty graficznej, z niekompatybilną kartą graficzną lub do szybkich testów.
+
+**Uruchomienie:**
+```bash
+docker compose up -d
+
+```
+> [!IMPORTANT]
+> W pliku `.env` należy ustawić wszystkie wymagane zmienne, w tym adresy serwerów i ewentualne klucze API.
+
+## Lokalne Budowanie
+
+Jeśli chcesz, aby zmiany w kodzie były uwzględniane w kontenerach, musisz zbudować obrazy lokalnie.
+
+1. **Konfiguracja Env**: `cp .env.example .env`
+2. **Wejdź do katalogu dev**:
+   ```bash
+   cd dev
+   ```
+3. **Dalej postępuj zgodnie z powyższymi instrukcjami**
 
 
 ## 🔐 Certyfikaty SSL
@@ -53,6 +78,7 @@ System generuje certyfikaty self-signed przy pierwszym uruchomieniu (`scripts/ge
 ### Własne Certyfikaty
 Podmień pliki w `nginx/certs/`: `nginx.crt`, `nginx.key`, `rootCA.pem`.
 Następnie: `docker compose restart nginx redis mosquitto`
+
 
 
 

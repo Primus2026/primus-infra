@@ -1,12 +1,16 @@
 services:
   backend:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-backend:latest
+    build:
+      context: ../primus-backend
+      target: backend
+    #    ports:
+    #      - "8000:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
       - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
-      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - ENVIRONMENT=${ENVIRONMENT:-local}
       - SECRET_KEY=${SECRET_KEY}
       - REPORT_DIR=${REPORT_DIR:-/data/reports}
       - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
@@ -34,6 +38,7 @@ services:
         condition: service_completed_successfully
     restart: always
     volumes:
+      - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
       - ./nginx/certs:/etc/ssl/certs:ro
 
@@ -54,8 +59,12 @@ services:
         condition: service_completed_successfully
     restart: always
   worker:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-backend:latest
+    build:
+      context: ../primus-backend
+      target: worker
+
     environment:
+
       # Required for YOLO 
       - YOLO_CONFIG_DIR=/tmp/Ultralytics
       - MPLCONFIGDIR=/tmp/matplotlib
@@ -66,7 +75,7 @@ services:
       - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
-      # Scheduler Config
+      # Scheduler Config (moved from celery-beat)
       - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
       - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
       - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
@@ -87,10 +96,24 @@ services:
     restart: always
     volumes:
       - backend_data:/data
+      # Enable GPU Support
+      # For NVIDIA: Requires NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
+      # For AMD: Maps the render devices directly
       - ./nginx/certs:/etc/ssl/certs:ro
+      # Uncomment the 'deploy' section below to enable NVIDIA GPU access
+      # deploy:
+      #   resources:
+      #     reservations:
+      #       devices:
+      #         - driver: nvidia
+      #           count: 1
+      #           capabilities: [ gpu ]
 
   frontend:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-frontend:latest
+    build:
+      context: ../primus-web-frontend
+    #    ports:
+    #      - "5173:5173"
     environment:
       - VITE_API_URL=${VITE_API_URL}
     depends_on:
@@ -98,7 +121,8 @@ services:
     restart: always
 
   mock-sensor:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-mock-sensor:latest
+    build:
+      context: ../primus-mock-sensor
     ports:
       - "8501:8501"
     environment:
@@ -122,7 +146,8 @@ services:
     restart: always
 
   mqtt-listener:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-listener:latest
+    build:
+      context: ../primus-mqtt-listener
     environment:
       - MQTT_BROKER=mosquitto
       - MQTT_PORT=8883

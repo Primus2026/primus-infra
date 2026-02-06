@@ -1,25 +1,21 @@
 services:
   backend:
-    build:
-      context: ../primus-backend
-      target: backend
-    #    ports:
-    #      - "8000:8000"
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-backend:latest
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
       - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
-      - ENVIRONMENT=${ENVIRONMENT:-local}
+      - ENVIRONMENT=${ENVIRONMENT:-production}
       - SECRET_KEY=${SECRET_KEY}
       - REPORT_DIR=${REPORT_DIR:-/data/reports}
       - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
       - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
-      - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER:ollama}
-      - OLLAMA_URL=${OLLAMA_URL:http://ollama:11434/api/generate}
-      - VOICE_LLM_MODEL=${VOICE_LLM_MODEL:qwen3:4b}
+      - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER:-ollama}
+      - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434/api/generate}
+      - VOICE_LLM_MODEL=${VOICE_LLM_MODEL:-qwen3:4b}
       - VOICE_LLM_API_KEY=${VOICE_LLM_API_KEY}
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -38,7 +34,6 @@ services:
         condition: service_completed_successfully
     restart: always
     volumes:
-      - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
       - ./nginx/certs:/etc/ssl/certs:ro
 
@@ -60,10 +55,7 @@ services:
     restart: always
 
   worker:
-    build:
-      context: ../primus-backend
-      target: worker
-
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-backend:latest
     environment:
       # Required for YOLO 
       - YOLO_CONFIG_DIR=/tmp/Ultralytics
@@ -75,7 +67,7 @@ services:
       - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
-      # Scheduler Config (moved from celery-beat)
+      # Scheduler Config
       - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
       - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
       - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
@@ -83,11 +75,16 @@ services:
 
       - PYTHONPATH=/app
 
-      # AMD Specific
-      - HSA_OVERRIDE_GFX_VERSION=10.3.0
-
     # Combined worker and beat command
     command: python -m celery -A app.core.celery_worker.celery_app worker -l info -c 4 --beat -s /tmp/celerybeat-schedule
+
+    # AMD GPU Passthrough
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - video
+      - render
 
     depends_on:
       postgres:
@@ -103,16 +100,8 @@ services:
       - backend_data:/data
       - ./nginx/certs:/etc/ssl/certs:ro
 
-    # Enable GPU Support (AMD ROCm)
-    devices:
-      - "/dev/kfd"
-      - "/dev/dri"
-
   frontend:
-    build:
-      context: ../primus-web-frontend
-    #    ports:
-    #      - "5173:5173"
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-frontend:latest
     environment:
       - VITE_API_URL=${VITE_API_URL}
     depends_on:
@@ -120,8 +109,7 @@ services:
     restart: always
 
   mock-sensor:
-    build:
-      context: ../primus-mock-sensor
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-mock-sensor:latest
     ports:
       - "8501:8501"
     environment:
@@ -145,8 +133,7 @@ services:
     restart: always
 
   mqtt-listener:
-    build:
-      context: ../primus-mqtt-listener
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-listener:latest
     environment:
       - MQTT_BROKER=mosquitto
       - MQTT_PORT=8883
@@ -190,19 +177,26 @@ services:
     volumes:
       - redis_data:/data
       - ./nginx/certs:/certs:ro
+    depends_on:
+      init-certs:
+        condition: service_completed_successfully
     restart: always
 
   mosquitto:
     image: eclipse-mosquitto:latest
     ports:
-      - "1883:1883"
+      - "11883:1883"
       - "8883:8883"
       - "9001:9001"
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
+      # Note: For persistence/auth, a local mosquitto.conf would be mounted here
       - ./configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
       - ./nginx/certs:/mosquitto/config/certs
+    depends_on:
+      init-certs:
+        condition: service_completed_successfully
     restart: always
 
   minio:
@@ -231,11 +225,13 @@ services:
   init-certs:
     image: alpine:latest
     user: root
+    environment:
+      - CERT_DIR=/certs
     command: >
       sh -c "apk add --no-cache openssl bash && if [ ! -f /certs/rootCA.pem ]; then
         echo 'Generating SSL Certificates...';
         bash /scripts/generate_certs.sh;
-        chmod 644 /certs/*;
+        chmod 644 /certs/* || true;
       else
         echo 'SSL Certificates already exist.';
       fi && mkdir -p /app/backups && chmod 777 /app/backups"
@@ -253,14 +249,15 @@ services:
       - ./scripts:/scripts
     entrypoint: /scripts/ollama-entrypoint.sh
     restart: always
-
-    # Enable GPU Support (AMD ROCm)
-    devices:
-      - "/dev/kfd"
-      - "/dev/dri"
     environment:
-      - HSA_OVERRIDE_GFX_VERSION=10.3.0
       - OLLAMA_VULKAN=1
+    # AMD GPU Passthrough
+    devices:
+      - "/dev/kfd:/dev/kfd"
+      - "/dev/dri:/dev/dri"
+    group_add:
+      - video
+      - render
 
 volumes:
   postgres_data:
