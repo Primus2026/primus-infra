@@ -9,7 +9,7 @@ To repozytorium odpowiada za orkiestrację usług, zarządzanie siecią i bezpie
 - **`docker-compose-nvidia.yml`**: Dodatek produkcyjny dla NVIDIA GPU.
 - **`docker-compose-amd.yml`**: Dodatek produkcyjny dla AMD GPU.
 
-## Wdrażanie Produkcyjne (Gotowe Obrazy)
+## Zalecane - Wdrażanie Produkcyjne (Gotowe Obrazy)
 
 Wersja produkcyjna pobiera gotowe obrazy z Docker Hub, co oszczędza czas (brak kompilacji na docelowej maszynie).
 
