@@ -107,3 +107,22 @@ Do testowania na urządzeniach bez dedykowanego sprzętu AI, lub z zewnętrznym 
     ```bash
     docker compose up --build
     ```
+## 🔐 Certyfikaty SSL
+
+Domyślnie system generuje **certyfikaty self-signed** podczas pierwszego uruchomienia skryptem `scripts/generate_certs.sh`. Umożliwia to szyfrowanie (HTTPS/MQTTS) w środowisku lokalnym.
+
+### Własne Certyfikaty
+Jeśli chcesz użyć własnych certyfikatów (np. z Let's Encrypt lub firmowego CA):
+
+1.  **Podmień pliki w katalogu `nginx/certs/`**:
+    *   `nginx.crt`: Certyfikat publiczny domeny.
+    *   `nginx.key`: Klucz prywatny certyfikatu.
+    *   `rootCA.pem`: Certyfikat urzędu CA (wymagany, aby usługi wewnętrzne ufały certyfikatowi Redis/Nginx).
+
+2.  **Zrestartuj kontenery**:
+    ```bash
+    docker compose restart nginx redis mosquitto
+    ```
+
+### Lokalne Testowanie
+Aby uniknąć ostrzeżeń w przeglądarce przy certyfikatach self-signed, zainstaluj plik `nginx/certs/rootCA.pem` jako zaufany główny urząd certyfikacji (Trusted Root CA) w swoim systemie lub przeglądarce.

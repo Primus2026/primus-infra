@@ -3,19 +3,19 @@ services:
     build:
       context: ../primus-backend
       target: backend
-    ports:
-      - "8000:8000"
+    #    ports:
+    #      - "8000:8000"
     environment:
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
+      - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
       - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
       - ENVIRONMENT=${ENVIRONMENT:-local}
       - SECRET_KEY=${SECRET_KEY}
       - REPORT_DIR=${REPORT_DIR:-/data/reports}
       - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
+      - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
       - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER}
       - OLLAMA_URL=${OLLAMA_URL}
@@ -40,6 +40,20 @@ services:
     volumes:
       - ../primus-backend/alembic:/app/alembic
       - backend_data:/data
+      - ./nginx/certs:/etc/ssl/certs:ro
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./nginx/certs:/etc/nginx/certs
+    depends_on:
+      - backend
+      - frontend
+    restart: always
 
   worker:
     build:
@@ -53,9 +67,9 @@ services:
       - OMP_NUM_THREADS=1
 
       - DATABASE_URL=${DATABASE_URL}
-      - REDIS_URL=${REDIS_URL}
-      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
-      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
+      - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
+      - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
       # Scheduler Config (moved from celery-beat)
       - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
@@ -80,6 +94,7 @@ services:
     restart: always
     volumes:
       - backend_data:/data
+      - ./nginx/certs:/etc/ssl/certs:ro
 
     # Enable GPU Support (NVIDIA)
     deploy:
@@ -93,8 +108,8 @@ services:
   frontend:
     build:
       context: ../primus-web-frontend
-    ports:
-      - "5173:5173"
+    #    ports:
+    #      - "5173:5173"
     environment:
       - VITE_API_URL=${VITE_API_URL}
     depends_on:
@@ -108,13 +123,17 @@ services:
       - "8501:8501"
     environment:
       - MQTT_BROKER=mosquitto
-      - MQTT_PORT=1883
-      - BACKEND_URL=http://backend:8000/api/v1
+      - MQTT_PORT=8883
+      - BACKEND_URL=https://nginx/api/v1
+      - MQTT_TLS_CA=/etc/ssl/certs/rootCA.pem
       - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
+    volumes:
+      - ./nginx/certs:/etc/ssl/certs:ro
     depends_on:
       - mosquitto
       - backend
+      - nginx
     restart: always
 
   mqtt-listener:
@@ -122,16 +141,19 @@ services:
       context: ../primus-mqtt-listener
     environment:
       - MQTT_BROKER=mosquitto
-      - MQTT_PORT=1883
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - BACKEND_URL=http://backend:8000/api/v1
+      - MQTT_PORT=8883
+      - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
+      - BACKEND_URL=https://nginx/api/v1
+      - MQTT_TLS_CA=/etc/ssl/certs/rootCA.pem
       - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
+    volumes:
+      - ./nginx/certs:/etc/ssl/certs:ro
     depends_on:
       - mosquitto
       - redis
       - backend
+      - nginx
     restart: always
 
   postgres:
@@ -148,21 +170,25 @@ services:
 
   redis:
     image: redis:alpine
+    command: redis-server --tls-port 6379 --port 0 --tls-cert-file /certs/service.crt --tls-key-file /certs/service.key --tls-ca-cert-file /certs/rootCA.pem --tls-auth-clients no
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
+      - ./nginx/certs:/certs:ro
     restart: always
 
   mosquitto:
     image: eclipse-mosquitto:latest
     ports:
       - "1883:1883"
+      - "8883:8883"
       - "9001:9001"
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      - ./mosquitto/config:/mosquitto/config
+      - ./configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ./nginx/certs:/mosquitto/config/certs
     restart: always
 
   minio:
