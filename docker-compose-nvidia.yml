@@ -16,11 +16,26 @@ services:
       - MEDIA_ROOT=${MEDIA_ROOT:-/data/media}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+
+      - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER}
+      - OLLAMA_URL=${OLLAMA_URL}
+      - VOICE_LLM_MODEL=${VOICE_LLM_MODEL}
+      - VOICE_LLM_API_KEY=${VOICE_LLM_API_KEY}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
-      - postgres
-      - redis
-      - mosquitto
-      - worker
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      mosquitto:
+        condition: service_started
+      worker:
+        condition: service_started
+      minio:
+        condition: service_started
+      init-permissions:
+        condition: service_completed_successfully
     restart: always
     volumes:
       - ../primus-backend/alembic:/app/alembic
@@ -30,22 +45,38 @@ services:
     build:
       context: ../primus-backend
       target: worker
-    working_dir: /data
 
     environment:
-
       # Required for YOLO 
       - YOLO_CONFIG_DIR=/tmp/Ultralytics
       - MPLCONFIGDIR=/tmp/matplotlib
+      - OMP_NUM_THREADS=1
 
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+
+      # Scheduler Config (moved from celery-beat)
+      - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
+      - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
+      - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
+      - BACKUP_SCHEDULE_MINUTE=${BACKUP_SCHEDULE_MINUTE}
+
       - PYTHONPATH=/app
+
+    # Combined worker and beat command
+    command: python -m celery -A app.core.celery_worker.celery_app worker -l info -c 4 --beat -s /tmp/celerybeat-schedule
+
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+      init-permissions:
+        condition: service_completed_successfully
     restart: always
     volumes:
       - backend_data:/data
@@ -73,23 +104,34 @@ services:
   mock-sensor:
     build:
       context: ../primus-mock-sensor
+    ports:
+      - "8501:8501"
     environment:
-      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - BACKEND_URL=http://backend:8000/api/v1
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     depends_on:
       - mosquitto
+      - backend
     restart: always
 
   mqtt-listener:
     build:
       context: ../primus-mqtt-listener
     environment:
-      - MQTT_BROKER_HOST=${MQTT_BROKER_HOST}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT}
-      - REDIS_URL=${REDIS_URL}
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKEND_URL=http://backend:8000/api/v1
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     depends_on:
       - mosquitto
       - redis
+      - backend
     restart: always
 
   postgres:
@@ -102,7 +144,6 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     restart: always
 
   redis:
@@ -121,7 +162,38 @@ services:
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config
     restart: always
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9002:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD:-minioadmin}
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: always
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c " until /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin; do
+        echo 'Waiting for MinIO...'
+        sleep 1
+      done; /usr/bin/mc mb -p myminio/product-images; /usr/bin/mc mb -p myminio/reports; /usr/bin/mc mb -p myminio/datasets; /usr/bin/mc mb -p myminio/models; /usr/bin/mc mb -p myminio/backups; /usr/bin/mc anonymous set public myminio/product-images; exit 0; "
+
+  init-permissions:
+    image: alpine:latest
+    user: root
+    command: sh -c "mkdir -p /app/backups && chmod 777 /app/backups"
+    volumes:
+      - ./backups:/app/backups
 
   ollama:
     image: ollama/ollama:latest

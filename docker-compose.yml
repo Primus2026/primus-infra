@@ -57,16 +57,16 @@ services:
       - REDIS_URL=${REDIS_URL}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
-      
+
       # Scheduler Config (moved from celery-beat)
       - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
       - REPORTS_SCHEDULE_MINUTE=${REPORTS_SCHEDULE_MINUTE}
       - BACKUP_SCHEDULE_HOUR=${BACKUP_SCHEDULE_HOUR}
       - BACKUP_SCHEDULE_MINUTE=${BACKUP_SCHEDULE_MINUTE}
-      
+
     # Combined worker and beat command
     command: python -m celery -A app.core.celery_worker.celery_app worker -l info -c 4 --beat -s /tmp/celerybeat-schedule
-    
+
     depends_on:
       postgres:
         condition: service_started
