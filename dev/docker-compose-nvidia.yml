@@ -1,7 +1,7 @@
 services:
   backend:
     build:
-      context: ../primus-backend
+      context: ../../primus-backend
       target: backend
     #    ports:
     #      - "8000:8000"
@@ -38,9 +38,10 @@ services:
         condition: service_completed_successfully
     restart: always
     volumes:
-      - ../primus-backend/alembic:/app/alembic
+      - ../../primus-backend/alembic:/app/alembic
+      - ../../primus-backend/app:/app/app
       - backend_data:/data
-      - ./nginx/certs:/etc/ssl/certs:ro
+      - ../nginx/certs:/etc/ssl/certs:ro
 
   nginx:
     image: nginx:alpine
@@ -48,8 +49,8 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/conf.d:/etc/nginx/conf.d
-      - ./nginx/certs:/etc/nginx/certs
+      - ../nginx/conf.d:/etc/nginx/conf.d
+      - ../nginx/certs:/etc/nginx/certs
     depends_on:
       backend:
         condition: service_started
@@ -61,7 +62,7 @@ services:
 
   worker:
     build:
-      context: ../primus-backend
+      context: ../../primus-backend
       target: worker
 
     environment:
@@ -97,8 +98,9 @@ services:
         condition: service_completed_successfully
     restart: always
     volumes:
+      - ../../primus-backend/app:/app/app
       - backend_data:/data
-      - ./nginx/certs:/etc/ssl/certs:ro
+      - ../nginx/certs:/etc/ssl/certs:ro
 
     # Enable GPU Support (NVIDIA)
     deploy:
@@ -111,7 +113,7 @@ services:
 
   frontend:
     build:
-      context: ../primus-web-frontend
+      context: ../../primus-web-frontend
     #    ports:
     #      - "5173:5173"
     environment:
@@ -122,7 +124,7 @@ services:
 
   mock-sensor:
     build:
-      context: ../primus-mock-sensor
+      context: ../../primus-mock-sensor
     ports:
       - "8501:8501"
     environment:
@@ -133,7 +135,7 @@ services:
       - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     volumes:
-      - ./nginx/certs:/etc/ssl/certs:ro
+      - ../nginx/certs:/etc/ssl/certs:ro
     depends_on:
       mosquitto:
         condition: service_started
@@ -147,7 +149,7 @@ services:
 
   mqtt-listener:
     build:
-      context: ../primus-mqtt-listener
+      context: ../../primus-mqtt-listener
     environment:
       - MQTT_BROKER=mosquitto
       - MQTT_PORT=8883
@@ -157,7 +159,7 @@ services:
       - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
     volumes:
-      - ./nginx/certs:/etc/ssl/certs:ro
+      - ../nginx/certs:/etc/ssl/certs:ro
     depends_on:
       mosquitto:
         condition: service_started
@@ -190,7 +192,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-      - ./nginx/certs:/certs:ro
+      - ../nginx/certs:/certs:ro
     depends_on:
       init-certs:
         condition: service_completed_successfully
@@ -205,8 +207,8 @@ services:
     volumes:
       - mosquitto_data:/mosquitto/data
       - mosquitto_log:/mosquitto/log
-      - ./configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - ./nginx/certs:/mosquitto/config/certs
+      - ../configs/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - ../nginx/certs:/mosquitto/config/certs
     depends_on:
       init-certs:
         condition: service_completed_successfully
@@ -249,9 +251,9 @@ services:
         echo 'SSL Certificates already exist.';
       fi && mkdir -p /app/backups && chmod 777 /app/backups"
     volumes:
-      - ./backups:/app/backups
-      - ./nginx/certs:/certs
-      - ./scripts:/scripts
+      - ../backups:/app/backups
+      - ../nginx/certs:/certs
+      - ../scripts:/scripts
 
   ollama:
     image: ollama/ollama:latest
@@ -259,7 +261,7 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
-      - ./scripts:/scripts
+      - ../scripts:/scripts
     entrypoint: /scripts/ollama-entrypoint.sh
     restart: always
     environment:
