@@ -2,8 +2,8 @@
 
 # Get script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CERT_DIR="${SCRIPT_DIR}/../nginx/certs"
-mkdir -p $CERT_DIR
+CERT_DIR="${CERT_DIR:-${SCRIPT_DIR}/../nginx/certs}"
+mkdir -p "$CERT_DIR"
 
 # 1. Generate Root CA
 echo "Generating Root CA..."

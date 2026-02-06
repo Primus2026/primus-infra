@@ -200,7 +200,7 @@ services:
   mosquitto:
     image: eclipse-mosquitto:latest
     ports:
-      - "1883:1883"
+      - "11883:1883"
       - "8883:8883"
       - "9001:9001"
     volumes:
@@ -240,11 +240,13 @@ services:
   init-certs:
     image: alpine:latest
     user: root
+    environment:
+      - CERT_DIR=/certs
     command: >
       sh -c "apk add --no-cache openssl bash && if [ ! -f /certs/rootCA.pem ]; then
         echo 'Generating SSL Certificates...';
         bash /scripts/generate_certs.sh;
-        chmod 644 /certs/*;
+        chmod 644 /certs/* || true;
       else
         echo 'SSL Certificates already exist.';
       fi && mkdir -p /app/backups && chmod 777 /app/backups"
