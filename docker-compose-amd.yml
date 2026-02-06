@@ -260,6 +260,7 @@ services:
       - "/dev/dri"
     environment:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - OLLAMA_VULKAN=1
 
 volumes:
   postgres_data:

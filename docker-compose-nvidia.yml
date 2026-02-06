@@ -254,6 +254,8 @@ services:
       - ./scripts:/scripts
     entrypoint: /scripts/ollama-entrypoint.sh
     restart: always
+    environment:
+      - OLLAMA_VULKAN=1
     # Enable GPU Support (NVIDIA)
     deploy:
       resources:
