@@ -13,6 +13,17 @@ To repozytorium odpowiada za orkiestrację usług, zarządzanie siecią i bezpie
 
 Wersja produkcyjna pobiera gotowe obrazy z Docker Hub, co oszczędza czas (brak kompilacji na docelowej maszynie).
 
+## Lokalne Budowanie
+
+Jeśli chcesz, aby zmiany w kodzie były uwzględniane w kontenerach, musisz zbudować obrazy lokalnie.
+
+1. **Konfiguracja Env**: `cp .env.example .env`
+2. **Wejdź do katalogu dev**:
+   ```bash
+   cd dev
+   ```
+3. **Dalej postępuj zgodnie z poniższymi instrukcjami**
+
 ## 🟢 Konfiguracja NVIDIA (GPU)
 Zalecana dla systemów z kartami graficznymi NVIDIA.
 
@@ -59,16 +70,6 @@ docker compose up -d
 > [!IMPORTANT]
 > W pliku `.env` należy ustawić wszystkie wymagane zmienne, w tym adresy serwerów i ewentualne klucze API.
 
-## Lokalne Budowanie
-
-Jeśli chcesz, aby zmiany w kodzie były uwzględniane w kontenerach, musisz zbudować obrazy lokalnie.
-
-1. **Konfiguracja Env**: `cp .env.example .env`
-2. **Wejdź do katalogu dev**:
-   ```bash
-   cd dev
-   ```
-3. **Dalej postępuj zgodnie z powyższymi instrukcjami**
 
 
 ## 🔐 Certyfikaty SSL
