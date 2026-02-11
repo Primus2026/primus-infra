@@ -59,7 +59,7 @@ services:
     restart: always
 
   worker:
-    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-backend:latest
+    image: ${DOCKER_HUB_USER:-flyinbutter}/primus-worker:latest
     environment:
       # Required for YOLO 
       - YOLO_CONFIG_DIR=/tmp/Ultralytics
