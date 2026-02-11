@@ -18,6 +18,9 @@ services:
       - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
 
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
+
       - VOICE_LLM_PROVIDER=${VOICE_LLM_PROVIDER:-ollama}
       - OLLAMA_URL=${OLLAMA_URL:-http://ollama:11434/api/generate}
       - VOICE_LLM_MODEL=${VOICE_LLM_MODEL:-qwen3:4b}
@@ -76,6 +79,9 @@ services:
       - REDIS_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_BROKER_URL=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
       - CELERY_RESULT_BACKEND=rediss://redis:6379/0?ssl_cert_reqs=required&ssl_ca_certs=/etc/ssl/certs/rootCA.pem
+
+      - ADMIN_LOGIN=${ADMIN_LOGIN:-SUPER_ADMIN}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-Asdf#1234}
 
       # Scheduler Config (moved from celery-beat)
       - REPORTS_SCHEDULE_HOUR=${REPORTS_SCHEDULE_HOUR}
