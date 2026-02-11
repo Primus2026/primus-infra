@@ -2,6 +2,54 @@
 
 To repozytorium odpowiada za orkiestrację usług, zarządzanie siecią i bezpieczeństwo danych (TLS/Szyfrowanie).
 
+## Konfiguracja Srodowiska
+
+### 1. Tryb Produkcyjny (Zalecany)
+W tym trybie pobierasz tylko repozytorium infrastruktury i uruchamiasz gotowe obrazy z Docker Hub.
+
+```bash
+git clone https://github.com/Primus2026/primus-infra.git
+cd primus-infra
+cp .env.example .env
+# Edytuj .env i ustaw odpowiednie wartości
+docker compose up -d
+```
+
+### 2. Tryb Deweloperski (Lokalne Budowanie)
+Wymaga pobrania wszystkich repozytoriów, aby zbudować obrazy z kodu źródłowego.
+
+#### Struktura Katalogów
+Utwórz katalog główny i wejdź do niego:
+```bash
+mkdir Primus2026
+cd Primus2026
+```
+
+#### Klonowanie Repozytoriów
+Wykonaj poniższe polecenia, aby pobrać wszystkie moduły systemu:
+
+```bash
+# Infrastruktura (Docker Compose)
+git clone https://github.com/Primus2026/primus-infra.git
+
+# Pozostałe moduły
+git clone https://github.com/Primus2026/primus-backend.git
+git clone https://github.com/Primus2026/primus-web-frontend.git
+git clone https://github.com/Primus2026/primus-mobile.git
+git clone https://github.com/Primus2026/primus-docs.git
+git clone https://github.com/Primus2026/primus-mqtt-listener.git
+git clone https://github.com/Primus2026/primus-mock-sensor.git
+```
+
+#### Uruchomienie
+```bash
+cd primus-infra/dev
+cp .env.example .env
+# Edytuj .env i ustaw odpowiednie wartości
+docker compose up --build -d
+```
+Flaga `--build` wymusi zbudowanie obrazów z kodu źródłowego (`../primus-backend` itd.).
+
 ## Struktura Projektu
 
 - **`dev/`** [DOMYŚLNE]: Zawiera konfigurację deweloperską (buduje obrazy lokalnie z `context: .`).
@@ -9,22 +57,8 @@ To repozytorium odpowiada za orkiestrację usług, zarządzanie siecią i bezpie
 - **`docker-compose-nvidia.yml`**: Dodatek produkcyjny dla NVIDIA GPU.
 - **`docker-compose-amd.yml`**: Dodatek produkcyjny dla AMD GPU.
 
-## Zalecane - Wdrażanie Produkcyjne (Gotowe Obrazy)
 
-Wersja produkcyjna pobiera gotowe obrazy z Docker Hub, co oszczędza czas (brak kompilacji na docelowej maszynie).
-
-## Lokalne Budowanie
-
-Jeśli chcesz, aby zmiany w kodzie były uwzględniane w kontenerach, musisz zbudować obrazy lokalnie.
-
-1. **Konfiguracja Env**: `cp .env.example .env`
-2. **Wejdź do katalogu dev**:
-   ```bash
-   cd dev
-   ```
-3. **Dalej postępuj zgodnie z poniższymi instrukcjami**
-
-## 🟢 Konfiguracja NVIDIA (GPU)
+## Konfiguracja NVIDIA (GPU)
 Zalecana dla systemów z kartami graficznymi NVIDIA.
 
 **Instalacja NVIDIA Container Toolkit:**
@@ -44,9 +78,7 @@ sudo systemctl restart docker
 docker compose -f docker-compose-nvidia.yml up -d
 ```
 
-
-
-## 🔴 Konfiguracja AMD (GPU)
+## Konfiguracja AMD (GPU)
 
 ### Tryb Hybrydowy (WSL2)
 1. **Ollama Windows**: 
@@ -59,29 +91,24 @@ docker compose -f docker-compose-nvidia.yml up -d
 docker compose -f docker-compose-amd.yml up -d
 ```
 
-## ⚪ Konfiguracja z zewnętrznym Ollama/OpenAI (CPU)
+## Konfiguracja z zewnętrznym Ollama/OpenAI (CPU)
 Zalecana dla systemów bez dedykowanej karty graficznej, z niekompatybilną kartą graficzną lub do szybkich testów.
 
 **Uruchomienie:**
 ```bash
 docker compose up -d
-
 ```
+
 > [!IMPORTANT]
 > W pliku `.env` należy ustawić wszystkie wymagane zmienne, w tym adresy serwerów i ewentualne klucze API.
 
-
-
-## 🔐 Certyfikaty SSL
+## Certyfikaty SSL
 
 System generuje certyfikaty self-signed przy pierwszym uruchomieniu (`scripts/generate_certs.sh`).
 
 ### Własne Certyfikaty
 Podmień pliki w `nginx/certs/`: `nginx.crt`, `nginx.key`, `rootCA.pem`.
 Następnie: `docker compose restart nginx redis mosquitto`
-
-
-
 
 ## Dokumentacja Projektu
 Pełna dokumentacja architektury, modelu danych i modułów znajduje się w osobnym repozytorium:
