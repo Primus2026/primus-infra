@@ -140,6 +140,10 @@ primus-backend/
 | `POST` | `/stock-inbound/scan` | Przyjęcie towaru (skan QR/barcode) |
 | `POST` | `/stock-outbound/scan` | Wydanie towaru (FIFO) |
 | `GET` | `/stock/` | Stan magazynu |
+**Strefy buforowe (Wejście / Wyjście)**:
+- **Przyjmowanie (Inbound)**: Wykorzystywane są pierwsze cztery kwadraty (pierwszy rząd i cztery kolumny).
+- **Wydawanie (Outbound)**: Wykorzystywane są: pierwszy rząd i ostatnie cztery kolumny.
+
 **Algorytm alokacji (A-B-C Strategy)**:
 1. Filtrowanie regałów po wymaganiach fizycznych (temp, wymiary, waga).
 2. Sprawdzenie możliwości składowania (stacking) — jeśli ten sam produkt jest już w slocie na poziomie 0, system sugeruje poziom 1.

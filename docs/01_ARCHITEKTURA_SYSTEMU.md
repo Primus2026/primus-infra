@@ -357,6 +357,9 @@ graph LR
 ---
 
 ## 7. Przyjecie towaru (Inbound)
+
+> **Uwaga sprzętowa**: Podczas przyjmowania towaru do magazynu, jako strefa wejściowa (buforowa) wykorzystywane są **pierwsze cztery kwadraty** (pierwszy rząd i pierwsze cztery kolumny).
+
 ```mermaid
 sequenceDiagram
     participant U as Uzytkownik
@@ -381,6 +384,9 @@ sequenceDiagram
 ---
 
 ## 8. Wydanie towaru (Outbound FIFO)
+
+> **Uwaga sprzętowa**: Podczas wydawania towaru z magazynu, jako strefa wyjściowa (buforowa) wykorzystywane są pola na krawędzi: **pierwszy rząd i ostatnie cztery kolumny**.
+
 ```mermaid
 sequenceDiagram
     participant U as Uzytkownik
