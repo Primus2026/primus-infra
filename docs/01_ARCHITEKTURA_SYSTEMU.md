@@ -625,3 +625,9 @@ graph LR
     style E3_11 fill:#3b82f6,color:#fff;
     style E3_12 fill:#3b82f6,color:#fff;
 ```
+
+---
+
+> **Dokument**: 01 — Architektura Systemu
+> **Ostatnia aktualizacja**: 2026-03-27
+> **Autorzy**: Telegrafiści

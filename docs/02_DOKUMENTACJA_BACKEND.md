@@ -406,4 +406,4 @@ celery -A app.core.celery_worker.celery_app worker -l info -c 4 --beat
 
 > **Dokument**: 02 — Dokumentacja Techniczna Backend
 > **Ostatnia aktualizacja**: <!-- TODO: Data -->
-> **Autorzy**: Drużyna Primus
+> **Autorzy**: Telegrafiści

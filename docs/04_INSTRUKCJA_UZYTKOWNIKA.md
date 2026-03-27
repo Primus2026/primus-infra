@@ -469,4 +469,4 @@ Opcjonalny fizyczny joystick zbudowany na ESP32S3 Matrix, umożliwiający:
 
 > **Dokument**: 04 — Instrukcja Użytkownika
 > **Ostatnia aktualizacja**: <!-- TODO: Data -->
-> **Autorzy**: Drużyna Primus
+> **Autorzy**: Telegrafiści

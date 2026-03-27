@@ -340,4 +340,4 @@ Wynikowa aplikacja serwowana przez nginx w kontenerze Docker.
 
 > **Dokument**: 03 — Dokumentacja Techniczna Frontend
 > **Ostatnia aktualizacja**: <!-- TODO: Data -->
-> **Autorzy**: Drużyna Primus
+> **Autorzy**: Telegrafiści
