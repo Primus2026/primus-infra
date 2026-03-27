@@ -148,7 +148,7 @@ Aplikacja używa **React Router DOM v7** z `createBrowserRouter`:
   - Homing (G28)
   - Podgląd z kamery USB (stream)
   - Status drukarki
-<!-- TODO: Opisać implementację joysticka ESP32S3 -->
+- **Implementacja Joysticka ESP32S3**: Wykorzystuje protokół WebSocket do przesyłania zdarzeń ruchu w czasie rzeczywistym. Matryca LED na urządzeniu wizualizuje aktualną pozycję (x, y) w układzie 8x8.
 
 ### 4.4 Rozstawianie szachów (`ChessSetupPage`)
 - **Widok**: Szachownica 8x8, status rozstawiania
@@ -169,7 +169,7 @@ Aplikacja używa **React Router DOM v7** z `createBrowserRouter`:
 - **Widok**: Formularz generowania kodu QR z podglądem
 - **Funkcja**: Tworzenie kodów QR dla nowych obiektów magazynowych
 - **Biblioteka**: `react-qr-code`
-<!-- TODO: Opisać integrację z backendem (drukowanie) -->
+- **Integracja**: Frontend przesyła dane do `/api/v1/qr_generator/generate`, otrzymując obraz PNG, który jest od razu wyświetlany z opcją drukowania (print CSS).
 
 ### 4.7 Logo OZT (`LogoOztPage`)
 - **Widok**: Układ materiałów tworzących logo OZT
@@ -179,8 +179,7 @@ Aplikacja używa **React Router DOM v7** z `createBrowserRouter`:
 ### 4.8 Inwentaryzacja (`WarehouseAuditPage`)
 - **Widok**: Progres inwentaryzacji, raport rozbieżności
 - **Funkcja**: Automatyczne skanowanie magazynu kamerą, porównanie stanu fizycznego z systemowym
-- **Komponent**: `WarehouseAudit`
-<!-- TODO: Opisać flow inwentaryzacji -->
+- **Flow**: Użytkownik klika "Start" -> Drukarka skanuje kolejne sloty -> Wyniki rozpoznawania (QR/YOLO) są przesyłane do backendu -> Frontend wyświetla raport porównawczy (Stan Faktyczny vs Stan Systemowy).
 
 ### 4.9 Raporty (`ReportsPage`)
 - **Widok**: Lista raportów, generowanie na żądanie
@@ -277,7 +276,7 @@ System komponentów bazujący na **Radix UI Primitives** z wariantami CVA:
 - Konfiguracja w `ProfilePage` → `Setup2FaModal`
 - Hook: `use2FA`
 - Generowanie kodu QR do zeskanowania aplikacją autentyfikatora
-<!-- TODO: Opisać flow weryfikacji 2FA przy logowaniu -->
+- **Flow 2FA**: Przy logowaniu, po podaniu poprawnych danych, pojawia się dodatkowe pole na 6-cyfrowy kod TOTP, który jest walidowany po stronie backendu (PyOTP).
 
 ---
 

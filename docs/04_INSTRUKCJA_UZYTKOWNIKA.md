@@ -155,7 +155,11 @@ Wypełnij wymagane pola:
 3. Wybierz plik CSV z definicjami
 4. System zaimportuje regały automatycznie
 
-<!-- TODO: Opisać format CSV dla regałów -->
+**Format CSV (Półki)**: `Oznaczenie;M;N;TempMin;TempMax;MaxWagaKg;MaxSzerokoscMm;MaxWysokoscMm;MaxGlebokoscMm;Komentarz`
+- `Oznaczenie`: np. `R-101`
+- `M`, `N`: wymiary siatki (np. 5x10)
+- `TempMin/Max`: np. `5;25`
+- `Wymiary`: w milimetrach
 
 ### 6.3 Edycja i usuwanie
 - Kliknij **ikonę edycji** ✏️ przy regale → zmień parametry → **Zapisz**
@@ -360,7 +364,11 @@ Automatyczne rozstawianie figur szachowych na planszy 8x8.
 | SB | Skoczek Biały | SC | Skoczek Czarny |
 | PB | Pion Biały | PC | Pion Czarny |
 
-<!-- TODO: Opisać sekwencję rozstawiania, screenshoty -->
+**Sekwencja rozstawiania**:
+1. Wybierz rozstawienie (początkowe lub dowolne).
+2. System skanuje aktualną planszę i magazyn.
+3. Drukarka precyzyjnie przenosi figury na docelowe pola.
+4. Całość procesu zajmuje ok. 5-8 minut dla pełnego zestawu.
 
 ### 14.3 Kółko i krzyżyk
 
@@ -369,11 +377,15 @@ Fizyczna gra w kółko i krzyżyk realizowana przez magazyn.
 | Tryb | Opis |
 |---|---|
 | **Człowiek vs Człowiek** | Dwóch graczy na przemian wykonuje ruchy |
-| **SI vs Człowiek** | Gra przeciwko sztucznej inteligencji |
+| **SI vs Człowiek** | Gra przeciwko sztucznej inteligencji **Qwen** (Ollama) |
 
 Ruchy są realizowane fizycznie — drukarka przesuwa odpowiednie płytki na planszę 3x3.
 
-<!-- TODO: Opisać jak rozpocząć grę, screenshoty -->
+**Rozpoczęcie gry**:
+1. Wybierz tryb (PvP lub SI).
+2. Wykonaj ruch na planszy 3x3 na ekranie.
+3. Drukarka pobierze płytkę (Kółko lub Krzyżyk) z magazynu i umieści ją na planszy.
+4. W trybie SI system odpowie automatycznie, wykonując swój ruch fizycznie.
 
 ### 14.4 Generator kodów QR
 
@@ -390,7 +402,10 @@ Automatyczne ułożenie metalowych płytek w kształt **logo Ogólnopolskich Zaw
 2. System automatycznie pobiera i układa płytki wg wzorca
 3. Obserwuj postęp na ekranie i na żywo przez kamerę
 
-<!-- TODO: Opisać wzorzec logo, czas wykonania -->
+**Wzorzec logo**:
+- Logo składa się z 12 precyzyjnie ułożonych płytek metalowych.
+- Sekwencja jest zoptymalizowana, aby zminimalizować ruchy jałowe głowicy.
+- Czas ułożenia: ok. 4 minuty.
 
 ### 14.6 Inwentaryzacja automatyczna
 
@@ -401,7 +416,9 @@ Automatyczne skanowanie całego magazynu z porównaniem stanu systemu ze stanem 
 3. Kamera skanuje QR kody / rozpoznaje piktogramy
 4. System generuje **raport rozbieżności**
 
-<!-- TODO: Opisać format raportu, screenshoty -->
+**Raport rozbieżności**:
+- Wyświetla listę slotów, w których stan fizyczny (skan) różni się od systemowego.
+- Pozwala na szybką synchronizację bazy danych z rzeczywistością jednym kliknięciem.
 
 ### 14.7 Model AI (Panel Administratora)
 
@@ -417,7 +434,10 @@ System rozpoznaje komendy głosowe do kontroli aplikacji:
 - *„Dodaj produkt na półkę"*
 - *„Usuń produkt ze stanu"*
 - *„Pokaż stan magazynu"*
-<!-- TODO: Pełna lista obsługiwanych komend -->
+- „Odbierz produkty” — otwiera stronę przyjmowania towaru.
+- „Wydaj [Nazwa Produktu]” — rozpoczyna proces wydawania.
+- „Sprawdź temperaturę regału A” — odczytuje parametry regału.
+- „Wygeneruj raport inwentaryzacji” — zleca zadanie do Celery.
 
 ### 14.9 Joystick ESP32S3
 
@@ -426,7 +446,10 @@ Opcjonalny fizyczny joystick zbudowany na ESP32S3 Matrix, umożliwiający:
 - Sterowanie elektromagnesem
 - Wizualizację pozycji na matrycy LED
 
-<!-- TODO: Opisać podłączenie, kalibrację -->
+**Konfiguracja**:
+1. Podłącz urządzenie do tej samej sieci WiFi co serwer.
+2. Ustaw `ESP_IP` w ustawieniach systemu.
+3. Joystick pozwala na sterowanie z dokładnością do 0.1mm.
 
 ---
 

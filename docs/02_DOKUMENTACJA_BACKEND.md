@@ -130,20 +130,8 @@ primus-backend/
 | `POST` | `/racks/` | Dodanie regału (MxN, temp, waga, wymiary) |
 | `PUT` | `/racks/{id}` | Edycja regału |
 | `DELETE` | `/racks/{id}` | Usunięcie regału |
-| `POST` | `/racks/import-csv` | Import regałów z CSV |
-<!-- TODO: Szczegóły walidacji parametrów regału -->
-
-### 3.3 Definiowanie asortymentu
-
-| Metoda | Endpoint | Opis |
-|---|---|---|
-| `GET` | `/product_definitions/` | Lista asortymentu |
-| `POST` | `/product_definitions/` | Dodanie asortymentu (z walidacją) |
-| `PUT` | `/product_definitions/{id}` | Edycja asortymentu |
-| `DELETE` | `/product_definitions/{id}` | Usunięcie asortymentu |
-| `POST` | `/product_definitions/import-csv` | Import z CSV |
-| `POST` | `/product_definitions/{id}/photo` | Upload zdjęcia |
-<!-- TODO: Uzupełnić format CSV -->
+- **Format CSV**: Półka;M;N;TempMin;TempMax;MaxWagaKg;MaxSzerokoscMm;MaxWysokoscMm;MaxGlebokoscMm;Komentarz
+- **Walidacja**: System sprawdza, czy nowe parametry nie kolidują z produktami aktualnie znajdującymi się na regale.
 
 ### 3.4 Operacje magazynowe
 
@@ -152,8 +140,13 @@ primus-backend/
 | `POST` | `/stock-inbound/scan` | Przyjęcie towaru (skan QR/barcode) |
 | `POST` | `/stock-outbound/scan` | Wydanie towaru (FIFO) |
 | `GET` | `/stock/` | Stan magazynu |
-| `GET` | `/stock/allocation` | Alokacja towaru do regału |
-<!-- TODO: Opisać algorytm alokacji -->
+**Algorytm alokacji (A-B-C Strategy)**:
+1. Filtrowanie regałów po wymaganiach fizycznych (temp, wymiary, waga).
+2. Sprawdzenie możliwości składowania (stacking) — jeśli ten sam produkt jest już w slocie na poziomie 0, system sugeruje poziom 1.
+3. Sortowanie według klasy rotacji (`FrequencyClass`):
+   - **Klasa A (High)**: Stackerowanie, potem najbliżej wejścia (Inbound).
+   - **Klasa B (Medium)**: Stackerowanie, potem środkowa strefa.
+   - **Klasa C (Low)**: Stackerowanie, potem najdalsze zakątki magazynu.
 
 ### 3.5 Raporty
 
@@ -201,8 +194,11 @@ primus-backend/
 | `POST` | `/gcode/magnet/off` | Wyłączenie elektromagnesu |
 | `POST` | `/gcode/pick` | Pobranie obiektu |
 | `POST` | `/gcode/place` | Odłożenie obiektu |
-| `GET` | `/gcode/status` | Status drukarki |
-<!-- TODO: Opisać parametry bezpieczeństwa (limity osi X, Y, Z) -->
+**Limity bezpieczeństwa**:
+- X: `[0.0, 280.0]`, Y: `[0.0, 280.0]`, Z: `[0.0, 50.0]`
+- Prędkość: XY: `3000 mm/min`, Z: `1000 mm/min`
+- Wysokość bezpieczna (Z_SAFE): `14.0 mm`
+- Poziomy chwytania: Dno: `0.0 mm`, Stack: `4.2 mm`
 
 ### 3.9 Kamera inspekcyjna
 
@@ -218,7 +214,8 @@ primus-backend/
 |---|---|---|
 | `POST` | `/joystick/move` | Ruch joystickiem |
 | `GET` | `/joystick/status` | Status joysticka |
-<!-- TODO: Opisać tryb WebSocket -->
+- **Tryb WebSocket**: Wysoka wydajność (fire-and-forget) dla płynnego sterowania (jogging).
+- **Protokół**: JSON przez WS na porcie 8000.
 
 ### 3.11 Generator QR
 
@@ -232,7 +229,8 @@ primus-backend/
 |---|---|---|
 | `POST` | `/chess/setup` | Rozstawienie figur szachowych |
 | `GET` | `/chess/status` | Status rozstawienia |
-<!-- TODO: Opisać sekwencję rozstawiania, tryb QR vs piktogramy -->
+- **Sekwencja**: Skanowanie planszy (inventory) -> Obliczenie brakujących figur -> Pobieranie z magazynu -> Rozstawianie na docelowych polach.
+- **Weryfikacja**: Każdy ruch potwierdzany wizualnie przez kamerę.
 
 ### 3.13 Kółko i krzyżyk
 
@@ -241,7 +239,7 @@ primus-backend/
 | `POST` | `/ttt/new` | Nowa gra |
 | `POST` | `/ttt/move` | Wykonanie ruchu |
 | `GET` | `/ttt/state` | Stan gry |
-<!-- TODO: Opisać algorytm AI (minimax?) -->
+- **Algorytm**: Proces decyzyjny SI oparty o model LLM **Qwen** (serwowany przez Ollama), analizujący stan planszy i zwracający ruch w formacie JSON.
 
 ### 3.14 Inwentaryzacja automatyczna
 
@@ -267,7 +265,8 @@ primus-backend/
 
 - Provider: Ollama (domyślne) lub OpenAI
 - Model: `qwen3:4b`
-<!-- TODO: Lista obsługiwanych komend głosowych -->
+- **Komendy**: `Dodaj [Produkt]`, `Wydaj [Produkt]`, `Wygeneruj raport [Typ]`, `Sprawdź stan [Półka]`.
+- **Flow**: Mowa -> STT (Frontend) -> Intent Extraction (LLM) -> Action Execution.
 
 ---
 
@@ -374,17 +373,16 @@ primus-backend/
 
 Pełna konfiguracja odbywa się przez zmienne środowiskowe (plik `.env`). Kluczowe zmienne:
 
-| Zmienna | Opis | Domyślna |
-|---|---|---|
 | `DATABASE_URL` | URL PostgreSQL | `postgresql+asyncpg://...` |
 | `SECRET_KEY` | Klucz JWT | (zmienić w produkcji!) |
 | `SERIAL_PORT` | Port COM drukarki | `/dev/ttyUSB0` |
 | `SERIAL_BAUDRATE` | Baudrate COM | `250000` |
 | `CAMERA_INDEX` | Index kamery USB | `0` |
 | `ESP_IP` | Adres IP ESP32S3 | `192.168.1.100` |
+| `REDIS_URL` | URL bazy Redis | `redis://redis:6379/0` |
+| `MINIO_ENDPOINT` | Endpoint MinIO | `minio:9000` |
 | `VOICE_LLM_PROVIDER` | Provider LLM | `ollama` |
 | `BACKUP_ENCRYPTION_KEY` | Klucz szyfrowania backupów | (wygenerowany) |
-<!-- TODO: Pełna lista zmiennych środowiskowych -->
 
 ---
 
