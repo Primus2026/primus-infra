@@ -1,4 +1,7 @@
-%% 1. Architektura ogólna
+# Primus Inter Pares 2026 — Architektura Systemu
+
+## 1. Architektura ogólna
+```mermaid
 graph TB
     subgraph Klienci
         FE["React SPA<br/>(TypeScript + Vite)"]
@@ -61,20 +64,23 @@ graph TB
 
     PRINTER --- MAGNET
 
-    style FE fill:#3b82f6,color:#fff
-    style API fill:#10b981,color:#fff
-    style WORKER fill:#10b981,color:#fff
-    style PG fill:#6366f1,color:#fff
-    style REDIS fill:#ef4444,color:#fff
-    style MINIO fill:#f59e0b,color:#000
-    style NGINX fill:#64748b,color:#fff
-    style MQTT fill:#8b5cf6,color:#fff
-    style PRINTER fill:#f97316,color:#fff
-    style MAGNET fill:#f97316,color:#fff
+    style FE fill:#3b82f6,color:#fff;
+    style API fill:#10b981,color:#fff;
+    style WORKER fill:#10b981,color:#fff;
+    style PG fill:#6366f1,color:#fff;
+    style REDIS fill:#ef4444,color:#fff;
+    style MINIO fill:#f59e0b,color:#000;
+    style NGINX fill:#64748b,color:#fff;
+    style MQTT fill:#8b5cf6,color:#fff;
+    style PRINTER fill:#f97316,color:#fff;
+    style MAGNET fill:#f97316,color:#fff;
     style CAM fill:#f97316,color:#fff;
+```
 
+---
 
-%% 2. Repozytoria projektu
+## 2. Repozytoria projektu
+```mermaid
 graph LR
     subgraph Repozytoria
         BE["primus-backend<br/>Python 3.11 / FastAPI"]
@@ -90,15 +96,20 @@ graph LR
     INFRA -->|"image"| MQTT_L
     INFRA -->|"image"| MOCK_S
 
-    style BE fill:#10b981,color:#fff
-    style FE fill:#3b82f6,color:#fff
-    style INFRA fill:#64748b,color:#fff
-    style MQTT_L fill:#8b5cf6,color:#fff
-    style MOCK_S fill:#8b5cf6,color:#fff
+    style BE fill:#10b981,color:#fff;
+    style FE fill:#3b82f6,color:#fff;
+    style INFRA fill:#64748b,color:#fff;
+    style MQTT_L fill:#8b5cf6,color:#fff;
+    style MOCK_S fill:#8b5cf6,color:#fff;
     style MOBILE fill:#a3a3a3,color:#fff;
+```
 
+---
 
-%% 3.1 Backend
+## 3. Stos technologiczny
+
+### 3.1 Backend
+```mermaid
 graph LR
     subgraph Backend_Stack["Backend Stack"]
         direction TB
@@ -129,16 +140,17 @@ graph LR
         QR["qrcode (generator)"]
     end
 
-    style FAST fill:#10b981,color:#fff
-    style SQL fill:#6366f1,color:#fff
-    style CEL fill:#ef4444,color:#fff
-    style JWT fill:#f59e0b,color:#000
-    style SER fill:#f97316,color:#fff
-    style CV fill:#f97316,color:#fff
+    style FAST fill:#10b981,color:#fff;
+    style SQL fill:#6366f1,color:#fff;
+    style CEL fill:#ef4444,color:#fff;
+    style JWT fill:#f59e0b,color:#000;
+    style SER fill:#f97316,color:#fff;
+    style CV fill:#f97316,color:#fff;
     style YOLO fill:#f97316,color:#fff;
+```
 
-
-%% 3.2 Frontend
+### 3.2 Frontend
+```mermaid
 graph LR
     subgraph Frontend_Stack["Frontend Stack"]
         direction TB
@@ -167,14 +179,17 @@ graph LR
         QRCODE["react-qr-code ^2.0"]
     end
 
-    style REACT fill:#3b82f6,color:#fff
-    style TS fill:#3178c6,color:#fff
-    style VITE fill:#646cff,color:#fff
-    style TW fill:#06b6d4,color:#fff
+    style REACT fill:#3b82f6,color:#fff;
+    style TS fill:#3178c6,color:#fff;
+    style VITE fill:#646cff,color:#fff;
+    style TW fill:#06b6d4,color:#fff;
     style RQ fill:#ef4444,color:#fff;
+```
 
+---
 
-%% 4. Serwisy Docker Compose
+## 4. Serwisy Docker Compose
+```mermaid
 graph TB
     IC["init-certs<br/>(generowanie TLS)"]
 
@@ -223,21 +238,24 @@ graph TB
     MS -->|"publish weight"| MQ
     ML --> RED
 
-    style IC fill:#a3a3a3,color:#fff
-    style BE fill:#10b981,color:#fff
-    style FE fill:#3b82f6,color:#fff
-    style W fill:#10b981,color:#fff
-    style NG fill:#64748b,color:#fff
-    style PG fill:#6366f1,color:#fff
-    style RED fill:#ef4444,color:#fff
-    style MIN fill:#f59e0b,color:#000
-    style MQ fill:#8b5cf6,color:#fff
-    style MS fill:#8b5cf6,color:#fff
-    style ML fill:#8b5cf6,color:#fff
+    style IC fill:#a3a3a3,color:#fff;
+    style BE fill:#10b981,color:#fff;
+    style FE fill:#3b82f6,color:#fff;
+    style W fill:#10b981,color:#fff;
+    style NG fill:#64748b,color:#fff;
+    style PG fill:#6366f1,color:#fff;
+    style RED fill:#ef4444,color:#fff;
+    style MIN fill:#f59e0b,color:#000;
+    style MQ fill:#8b5cf6,color:#fff;
+    style MS fill:#8b5cf6,color:#fff;
+    style ML fill:#8b5cf6,color:#fff;
     style CB fill:#a3a3a3,color:#fff;
+```
 
+---
 
-%% 5. Bezpieczeństwo
+## 5. Bezpieczeństwo
+```mermaid
 graph TB
     subgraph TLS_Layer["Szyfrowanie komunikacji"]
         HTTPS["HTTPS :8443<br/>(Nginx termination)"]
@@ -273,17 +291,20 @@ graph TB
     FERNET --> MINIO_B
     CELERY_B --> FERNET
 
-    style HTTPS fill:#10b981,color:#fff
-    style REDIS_TLS fill:#ef4444,color:#fff
-    style MQTT_TLS fill:#8b5cf6,color:#fff
-    style JWT fill:#f59e0b,color:#000
-    style ARGON fill:#f59e0b,color:#000
-    style ADMIN fill:#6366f1,color:#fff
-    style WORKER_ROLE fill:#3b82f6,color:#fff
+    style HTTPS fill:#10b981,color:#fff;
+    style REDIS_TLS fill:#ef4444,color:#fff;
+    style MQTT_TLS fill:#8b5cf6,color:#fff;
+    style JWT fill:#f59e0b,color:#000;
+    style ARGON fill:#f59e0b,color:#000;
+    style ADMIN fill:#6366f1,color:#fff;
+    style WORKER_ROLE fill:#3b82f6,color:#fff;
     style FERNET fill:#ef4444,color:#fff;
+```
 
+---
 
-%% 6. Integracja sprzetowa (ETAP FINALOWY)
+## 6. Integracja sprzetowa (ETAP FINALOWY)
+```mermaid
 graph LR
     subgraph Drukarka_3D["Drukarka 3D / Magazyn fizyczny"]
         COM["Port COM<br/>/dev/ttyUSB0<br/>250000 baud"]
@@ -321,19 +342,22 @@ graph LR
     WIFI --> ESP_CONF
     ESP_CONF --> LED
 
-    style COM fill:#f97316,color:#fff
-    style GCODE fill:#f97316,color:#fff
-    style ELECTRO fill:#f97316,color:#fff
-    style OPENCV fill:#06b6d4,color:#fff
-    style PYZBAR fill:#06b6d4,color:#fff
-    style YOLO_HW fill:#06b6d4,color:#fff
-    style WIFI fill:#8b5cf6,color:#fff
-    style GS fill:#10b981,color:#fff
-    style CS fill:#10b981,color:#fff
+    style COM fill:#f97316,color:#fff;
+    style GCODE fill:#f97316,color:#fff;
+    style ELECTRO fill:#f97316,color:#fff;
+    style OPENCV fill:#06b6d4,color:#fff;
+    style PYZBAR fill:#06b6d4,color:#fff;
+    style YOLO_HW fill:#06b6d4,color:#fff;
+    style WIFI fill:#8b5cf6,color:#fff;
+    style GS fill:#10b981,color:#fff;
+    style CS fill:#10b981,color:#fff;
     style JS fill:#10b981,color:#fff;
+```
 
+---
 
-%% 7. Przyjecie towaru (Inbound)
+## 7. Przyjecie towaru (Inbound)
+```mermaid
 sequenceDiagram
     participant U as Uzytkownik
     participant FE as Frontend
@@ -352,8 +376,12 @@ sequenceDiagram
     API->>REDIS: Aktualizuj cache wag
     API-->>FE: Sukces + info o regale
     FE-->>U: Komunikat: umieszczono w regale X, slot Y
+```
 
-%% 8. Wydanie towaru (Outbound FIFO)
+---
+
+## 8. Wydanie towaru (Outbound FIFO)
+```mermaid
 sequenceDiagram
     participant U as Uzytkownik
     participant FE as Frontend
@@ -366,8 +394,12 @@ sequenceDiagram
     API->>DB: Oznacz removed_at = teraz
     API-->>FE: Sukces + info o produkcie
     FE-->>U: Produkt wydany z regalu X
+```
 
-%% 9. Fizyczny Pick and Place
+---
+
+## 9. Fizyczny Pick and Place
+```mermaid
 sequenceDiagram
     participant API as FastAPI
     participant GS as GcodeService
@@ -396,8 +428,12 @@ sequenceDiagram
     GS->>COM: G0 Z{safe_z}
     COM->>PRINTER: Podniesienie glowicy
     GS-->>API: OK
+```
 
-%% 10. Flow monitorowania (IoT)
+---
+
+## 10. Flow monitorowania (IoT)
+```mermaid
 sequenceDiagram
     participant SENSOR as Czujnik wagi
     participant MOCK as Mock Sensor
@@ -417,8 +453,12 @@ sequenceDiagram
     alt Niezgodnosc
         API->>DB: Utworz Alert (anomalia wagi)
     end
+```
 
-%% 11. Warstwa danych (ERD)
+---
+
+## 11. Warstwa danych (ERD)
+```mermaid
 erDiagram
     USER {
         uuid id PK
@@ -493,10 +533,13 @@ erDiagram
     RACK ||--o{ STOCK_ITEM : "przechowuje"
     PRODUCT_DEFINITION ||--o{ STOCK_ITEM : "definiuje"
     RACK ||--o{ ALERT : "generuje"
-    PRODUCT_DEFINITION ||--o{ PRODUCT_STATS : "statystyki";
+    PRODUCT_DEFINITION ||--o{ PRODUCT_STATS : "statystyki"
+```
 
+---
 
-%% 12. Zadania asynchroniczne (Celery)
+## 12. Zadania asynchroniczne (Celery)
+```mermaid
 graph TB
     subgraph Scheduler["Celery Beat (harmonogram)"]
         SCHED_RPT["Raporty<br/>codziennie"]
@@ -516,17 +559,20 @@ graph TB
     SCHED_BKP --> W2
     SCHED_AI --> W3
 
-    style SCHED_RPT fill:#f59e0b,color:#000
-    style SCHED_BKP fill:#f59e0b,color:#000
-    style SCHED_AI fill:#f59e0b,color:#000
-    style W1 fill:#10b981,color:#fff
-    style W2 fill:#10b981,color:#fff
-    style W3 fill:#10b981,color:#fff
-    style W4 fill:#10b981,color:#fff
+    style SCHED_RPT fill:#f59e0b,color:#000;
+    style SCHED_BKP fill:#f59e0b,color:#000;
+    style SCHED_AI fill:#f59e0b,color:#000;
+    style W1 fill:#10b981,color:#fff;
+    style W2 fill:#10b981,color:#fff;
+    style W3 fill:#10b981,color:#fff;
+    style W4 fill:#10b981,color:#fff;
     style W5 fill:#10b981,color:#fff;
+```
 
+---
 
-%% 13. Mapowanie zadan finalowych
+## 13. Mapowanie zadan finalowych
+```mermaid
 graph LR
     subgraph Etap2["Etap 2 - Aplikacja magazynowa"]
         E2_1["Definiowanie regalow"]
@@ -556,25 +602,26 @@ graph LR
         E3_12["Joystick ESP32"]
     end
 
-    style E2_1 fill:#10b981,color:#fff
-    style E2_2 fill:#10b981,color:#fff
-    style E2_3 fill:#10b981,color:#fff
-    style E2_4 fill:#10b981,color:#fff
-    style E2_5 fill:#10b981,color:#fff
-    style E2_6 fill:#10b981,color:#fff
-    style E2_7 fill:#10b981,color:#fff
-    style E2_8 fill:#10b981,color:#fff
-    style E2_9 fill:#10b981,color:#fff
-    style E2_10 fill:#10b981,color:#fff
-    style E3_1 fill:#3b82f6,color:#fff
-    style E3_2 fill:#3b82f6,color:#fff
-    style E3_3 fill:#3b82f6,color:#fff
-    style E3_4 fill:#3b82f6,color:#fff
-    style E3_5 fill:#3b82f6,color:#fff
-    style E3_6 fill:#3b82f6,color:#fff
-    style E3_7 fill:#3b82f6,color:#fff
-    style E3_8 fill:#3b82f6,color:#fff
-    style E3_9 fill:#3b82f6,color:#fff
-    style E3_10 fill:#3b82f6,color:#fff
-    style E3_11 fill:#3b82f6,color:#fff
-    style E3_12 fill:#3b82f6,color:#fff
+    style E2_1 fill:#10b981,color:#fff;
+    style E2_2 fill:#10b981,color:#fff;
+    style E2_3 fill:#10b981,color:#fff;
+    style E2_4 fill:#10b981,color:#fff;
+    style E2_5 fill:#10b981,color:#fff;
+    style E2_6 fill:#10b981,color:#fff;
+    style E2_7 fill:#10b981,color:#fff;
+    style E2_8 fill:#10b981,color:#fff;
+    style E2_9 fill:#10b981,color:#fff;
+    style E2_10 fill:#10b981,color:#fff;
+    style E3_1 fill:#3b82f6,color:#fff;
+    style E3_2 fill:#3b82f6,color:#fff;
+    style E3_3 fill:#3b82f6,color:#fff;
+    style E3_4 fill:#3b82f6,color:#fff;
+    style E3_5 fill:#3b82f6,color:#fff;
+    style E3_6 fill:#3b82f6,color:#fff;
+    style E3_7 fill:#3b82f6,color:#fff;
+    style E3_8 fill:#3b82f6,color:#fff;
+    style E3_9 fill:#3b82f6,color:#fff;
+    style E3_10 fill:#3b82f6,color:#fff;
+    style E3_11 fill:#3b82f6,color:#fff;
+    style E3_12 fill:#3b82f6,color:#fff;
+```
