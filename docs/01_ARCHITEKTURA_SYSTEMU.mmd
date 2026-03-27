@@ -71,7 +71,8 @@ graph TB
     style MQTT fill:#8b5cf6,color:#fff
     style PRINTER fill:#f97316,color:#fff
     style MAGNET fill:#f97316,color:#fff
-    style CAM fill:#f97316,color:#fff
+    style CAM fill:#f97316,color:#fff;
+
 
 %% 2. Repozytoria projektu
 graph LR
@@ -94,7 +95,8 @@ graph LR
     style INFRA fill:#64748b,color:#fff
     style MQTT_L fill:#8b5cf6,color:#fff
     style MOCK_S fill:#8b5cf6,color:#fff
-    style MOBILE fill:#a3a3a3,color:#fff
+    style MOBILE fill:#a3a3a3,color:#fff;
+
 
 %% 3.1 Backend
 graph LR
@@ -133,7 +135,8 @@ graph LR
     style JWT fill:#f59e0b,color:#000
     style SER fill:#f97316,color:#fff
     style CV fill:#f97316,color:#fff
-    style YOLO fill:#f97316,color:#fff
+    style YOLO fill:#f97316,color:#fff;
+
 
 %% 3.2 Frontend
 graph LR
@@ -168,7 +171,8 @@ graph LR
     style TS fill:#3178c6,color:#fff
     style VITE fill:#646cff,color:#fff
     style TW fill:#06b6d4,color:#fff
-    style RQ fill:#ef4444,color:#fff
+    style RQ fill:#ef4444,color:#fff;
+
 
 %% 4. Serwisy Docker Compose
 graph TB
@@ -230,7 +234,8 @@ graph TB
     style MQ fill:#8b5cf6,color:#fff
     style MS fill:#8b5cf6,color:#fff
     style ML fill:#8b5cf6,color:#fff
-    style CB fill:#a3a3a3,color:#fff
+    style CB fill:#a3a3a3,color:#fff;
+
 
 %% 5. Bezpieczeństwo
 graph TB
@@ -275,7 +280,8 @@ graph TB
     style ARGON fill:#f59e0b,color:#000
     style ADMIN fill:#6366f1,color:#fff
     style WORKER_ROLE fill:#3b82f6,color:#fff
-    style FERNET fill:#ef4444,color:#fff
+    style FERNET fill:#ef4444,color:#fff;
+
 
 %% 6. Integracja sprzetowa (ETAP FINALOWY)
 graph LR
@@ -324,7 +330,8 @@ graph LR
     style WIFI fill:#8b5cf6,color:#fff
     style GS fill:#10b981,color:#fff
     style CS fill:#10b981,color:#fff
-    style JS fill:#10b981,color:#fff
+    style JS fill:#10b981,color:#fff;
+
 
 %% 7. Przyjecie towaru (Inbound)
 sequenceDiagram
@@ -486,7 +493,8 @@ erDiagram
     RACK ||--o{ STOCK_ITEM : "przechowuje"
     PRODUCT_DEFINITION ||--o{ STOCK_ITEM : "definiuje"
     RACK ||--o{ ALERT : "generuje"
-    PRODUCT_DEFINITION ||--o{ PRODUCT_STATS : "statystyki"
+    PRODUCT_DEFINITION ||--o{ PRODUCT_STATS : "statystyki";
+
 
 %% 12. Zadania asynchroniczne (Celery)
 graph TB
@@ -515,7 +523,8 @@ graph TB
     style W2 fill:#10b981,color:#fff
     style W3 fill:#10b981,color:#fff
     style W4 fill:#10b981,color:#fff
-    style W5 fill:#10b981,color:#fff
+    style W5 fill:#10b981,color:#fff;
+
 
 %% 13. Mapowanie zadan finalowych
 graph LR
