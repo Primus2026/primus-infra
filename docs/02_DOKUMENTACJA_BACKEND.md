@@ -140,6 +140,7 @@ primus-backend/
 | `POST` | `/stock-inbound/scan` | Przyjęcie towaru (skan QR/barcode) |
 | `POST` | `/stock-outbound/scan` | Wydanie towaru (FIFO) |
 | `GET` | `/stock/` | Stan magazynu |
+
 **Strefy buforowe (Wejście / Wyjście)**:
 - **Przyjmowanie (Inbound)**: Wykorzystywane są pierwsze cztery kwadraty (pierwszy rząd i cztery kolumny).
 - **Wydawanie (Outbound)**: Wykorzystywane są: pierwszy rząd i ostatnie cztery kolumny.
